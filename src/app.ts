@@ -4,7 +4,7 @@ import express from "express";
 import notFound from "./errors/notFound";
 import mongoose, { ConnectOptions } from 'mongoose';
 import errorHandlerMiddleware from "./middleware/errorHandler";
-import router from "./routes/v1";
+import router from "./routes";
 
 const corsOptions: cors.CorsOptions = {
   origin: "*",
@@ -39,7 +39,7 @@ app.use(router);
 app.use(notFound);
 app.use(errorHandlerMiddleware);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
 const start = async () => {
   try {

@@ -5,7 +5,6 @@ import { createCustomError } from "../errors/customAPIError";
 import asyncWrapper from "../middleware/asyncWrapper";
 import User from "../model/User";
 import { sendSuccessApiResponse } from "../middleware/successResp";
-import { sort, page } from "../util/APIfeature";
 import client from "../util/cacheService";
 
 interface signupObject {
@@ -20,13 +19,14 @@ interface IGetUserAuthInfoRequest extends Request {
 
 const getNewToken = async (payload: any) => {
     const isUser = payload?.userId ? true : false;
-
-
     let data: any;
     if (isUser) {
         const user: any = await User.findOne({ _id: payload.userId });
         if (user) {
-            data = { token: user.generateJWT() };
+            const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+                expiresIn: '3h',
+            });
+            data = { token: token };
         }
     }
 
@@ -79,7 +79,10 @@ const registerUser: RequestHandler = asyncWrapper(async (req: Request, res: Resp
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user: any = await User.create({ name, email, password: hashedPassword });
-    const data = { created: true, user, token: user.generateJWT() };
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+        expiresIn: '3h',
+    });
+    const data = { created: true, token: token };
     res.status(201).json(sendSuccessApiResponse(data, 201));
 
 });
@@ -92,7 +95,7 @@ const getUserById: RequestHandler = asyncWrapper(async (req: Request, res: Respo
         result = JSON.parse(isCashed)
     }
     else {
-        result = await User.findById(id);
+        result = await User.findById(id, {password:0});
         if (!result) {
             next(createCustomError('User not found', 404));
         }
@@ -115,11 +118,14 @@ const loginUser: RequestHandler = asyncWrapper(async (req: Request, res: Respons
             return next(createCustomError(message, 401));
         }
 
+        const token = jwt.sign({ userId: emailExists._id }, process.env.JWT_SECRET!, {
+            expiresIn: '3h',
+        });
         const data = {
             canLogIn: true,
             name: emailExists.name,
             email: emailExists.email,
-            token: emailExists.generateJWT(),
+            token: token,
         };
 
         res.status(200).json(sendSuccessApiResponse(data, 200));
@@ -167,18 +173,19 @@ const updatePassword: RequestHandler = asyncWrapper(async (req: IGetUserAuthInfo
 });
 
 const getUsers: RequestHandler = asyncWrapper(async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
-    let result;
-    const isCashed: any = await client.getItem("all_users");
-    if (isCashed) {
-        result = JSON.parse(isCashed)
-    }
-    else {
-        result = await User.find();
-        await client.setItem("all_users", JSON.stringify(result), {ttl: 60})
-    }
-    const query = await sort(req.query, result);
-    const query2 = await page(req.query, query);
-    res.status(200).json(sendSuccessApiResponse(query2, 200));
+    let sort:any = {}
+    const { page = 1, limit = 10 } = req.query;
+    if(req.query.sortBy){
+        const parts =  (req.query.sortBy as string).split(',');
+        parts.forEach(el => {
+            const sortEl = (el as string).split(':');
+            sort[sortEl[0]] = sortEl[1] === 'desc'? -1: 1;
+            console.log(sort)
+        });
+     }
+     const skip = ((page as number) - 1) * (limit as number);
+    const users = await User.find({},{password:0}).skip(skip).limit(limit as number).sort(sort);
+    res.status(200).json(sendSuccessApiResponse(users, 200));
 });
 
 export {
