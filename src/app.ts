@@ -1,7 +1,6 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import notFound from "./errors/notFound";
 import mongoose, { ConnectOptions } from 'mongoose';
 import errorHandlerMiddleware from "./middleware/errorHandler";
 import router from "./routes";
@@ -36,7 +35,6 @@ mongoose.connect(process.env.MONGO_URI, {
 
 app.use(router);
 // Error handling
-app.use(notFound);
 app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 8080;

@@ -1,5 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 
+//wrapper to handle try catch
 const asyncWrapper = (
     fn: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>
 ): RequestHandler => {

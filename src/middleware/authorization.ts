@@ -7,6 +7,7 @@ interface IGetUserAuthInfoRequest extends Request {
     user: object 
   }
 
+  //auth using jwt
 const authorization = async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer")) {

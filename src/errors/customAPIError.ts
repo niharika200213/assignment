@@ -6,6 +6,7 @@ class customAPIError extends Error {
     path: any;
     value: any;
 
+    //constructor to create custom errors
     constructor(message: string, statusCode: number = 500) {
         super(message);
         this.status = { code: statusCode, message: `${statusCode}`.startsWith("4") ? "fail" : "error" };
