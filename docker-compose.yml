@@ -1,0 +1,39 @@
+version: '3.9'
+services:
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb:/data/db
+
+  redisdb:
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - redisdb:/data
+
+  api: 
+    build: .
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - JWT_SECRET = hbdhvs83y4rghbf893ndhu28hbdhvs83y4rghbf893ndhu28
+      - PORT = 8080
+      - MONGO_URI = mongodb+srv://niharika:niharika@cluster1.4fqv3.mongodb.net/assignment?retryWrites=true&w=majority
+      - REDIS_PASSWORD = cjchbcjhvbvhbj
+      - REDIS_PORT = 6379
+    depends_on:
+      - mongodb
+      - redisdb
+
+volumes:
+  mongodb: {}
+  redisdb: {}
