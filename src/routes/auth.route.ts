@@ -11,7 +11,7 @@ import {
 import authorization from "../middleware/authorization";
 
 /**
- * Endpoint: /api/v1/auth
+ * Endpoint: /api/auth
  */
 const router = express.Router();
 
