@@ -216,13 +216,13 @@ const getUsers: RequestHandler = asyncWrapper(async (req: IGetUserAuthInfoReques
     let sort:any = {}
     const { page = 1, limit = 10 } = req.query;
 
+    // exmaple ?sortBy=name:asc,email:desc&page=3&limit=2
     //implement sorting
     if(req.query.sortBy){
         const parts =  (req.query.sortBy as string).split(',');
         parts.forEach(el => {
             const sortEl = (el as string).split(':');
             sort[sortEl[0]] = sortEl[1] === 'desc'? -1: 1;
-            console.log(sort)
         });
      }
 
